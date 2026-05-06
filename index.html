@@ -85,14 +85,25 @@
     .m-list li::before{content:'›';position:absolute;left:0;color:var(--gold);font-size:16px;line-height:1.7}
     .m-moment{background:rgba(201,169,110,.055);border-left:3px solid var(--gold);padding:22px 28px;margin-bottom:28px;border-radius:0 3px 3px 0}
     .m-moment p{font-family:'Cormorant Garamond',serif;font-size:21px;font-style:italic;color:var(--cream);line-height:1.55}
-    /* PHOTO REEL */
-    .photo-reel-wrap{margin-bottom:32px}
-    .photo-reel{display:flex;gap:7px;overflow-x:auto;height:195px;padding-bottom:6px;scroll-snap-type:x mandatory}
-    .photo-reel::-webkit-scrollbar{height:3px}
-    .photo-reel::-webkit-scrollbar-track{background:rgba(255,255,255,.04)}
-    .photo-reel::-webkit-scrollbar-thumb{background:var(--gold);border-radius:2px}
-    .reel-img{height:100%;width:auto;min-width:110px;object-fit:cover;border-radius:2px;cursor:pointer;flex-shrink:0;scroll-snap-align:start;transition:filter .25s,transform .25s;filter:brightness(.85)}
-    .reel-img:hover{filter:brightness(1);transform:scale(1.03)}
+    /* PHOTO MOSAIC */
+    .pm-wrap{margin-bottom:36px}
+    .pm-grid{display:grid;gap:5px;grid-template-columns:repeat(3,1fr);margin-top:14px}
+    .pm-cell{overflow:hidden;border-radius:2px;cursor:pointer;position:relative;height:190px;opacity:0;animation:pmIn .5s cubic-bezier(.25,.46,.45,.94) forwards}
+    .pm-cell.feat{grid-column:1/3;height:190px}
+    .pm-grid.pm-solo .pm-cell.feat{grid-column:1/-1}
+    .pm-cell:nth-child(1){animation-delay:.04s}
+    .pm-cell:nth-child(2){animation-delay:.10s}
+    .pm-cell:nth-child(3){animation-delay:.16s}
+    .pm-cell:nth-child(4){animation-delay:.22s}
+    .pm-cell:nth-child(5){animation-delay:.28s}
+    .pm-img{width:100%;height:100%;object-fit:cover;display:block;filter:brightness(.78);transition:filter .4s ease,transform .5s cubic-bezier(.25,.46,.45,.94)}
+    .pm-cell:hover .pm-img{filter:brightness(1.02);transform:scale(1.06)}
+    .pm-cell::after{content:'';position:absolute;inset:0;border:2px solid transparent;border-radius:2px;transition:border-color .25s;pointer-events:none}
+    .pm-cell:hover::after{border-color:rgba(201,169,110,.7)}
+    .pm-more{position:absolute;inset:0;background:rgba(11,10,8,.72);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+    .pm-more-n{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--cream);line-height:1}
+    .pm-more-l{font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--cream2)}
+    @keyframes pmIn{from{opacity:0;transform:translateY(14px) scale(.975)}to{opacity:1;transform:none}}
     /* LIGHTBOX */
     .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:99999;display:none;align-items:center;justify-content:center;padding:20px}
     .lightbox.open{display:flex}
@@ -242,9 +253,9 @@
         <span class="m-label" style="margin-bottom:6px;">Best Moment</span>
         <p id="mMoment"></p>
       </div>
-      <div class="photo-reel-wrap">
-        <span class="m-label">Photo Reel</span>
-        <div class="photo-reel" id="mReel"></div>
+      <div class="pm-wrap">
+        <span class="m-label">Photos</span>
+        <div class="pm-grid" id="mMosaic"></div>
       </div>
       <div class="m-verdict">
         <span class="vl">Would Return?</span>
@@ -353,7 +364,7 @@ const CITIES=[
    grad:'linear-gradient(145deg,#001930 0%,#003d6e 55%,#0059a0 100%)',
    hero:P+'portugal_lisbon_picture_with_boys_on_boat.JPG',
    photos:[P+'portugal_lisbon_picture_with_boys_on_boat.JPG',P+'portugal_lisbon_first_night_out_picture_with_friends_in_front_of_water.jpeg',P+'portugal_lisbon_sardine_store_me_sitting_on_sardine_throne.jpeg',P+'portugal_lisbon_second_night_out_picture_with_boys.jpeg',P+'portugal_porto_picture_of_city_good_view_candid.jpeg',P+'portugal_porto_picture_with_friend_trying_el_pastel.JPG',P+'portugal_porto_picture_with_friends_on_famous_bridge_good_view.jpeg'],
-   song:{title:'Jazz',artist:'Lil Double 0',ytId:veGTxbrkasg,url:'https://open.spotify.com/search/Jazz%20Lil%20Double%200'},
+   song:{title:'Jazz',artist:'Lil Double 0',ytId:'veGTxbrkasg',url:'https://open.spotify.com/search/Jazz%20Lil%20Double%200'},
    hi:['Time Out Market: peri peri chicken, quesadilla, and a pastel de nata in one sitting. The correct move.','Jeronimos Monastery: late Gothic Manueline architecture at its absolute peak.','Belem Tower and Monument to the Discoveries tell the entire Portuguese Age of Exploration in an afternoon.','Sunset cruise on the Tagus. Water, wine, the whole city glowing. Peak Lisbon.','Sat on the sardine throne at the sardine store. Required.','Porto day trip: pork sandwich at Cafe Espresso was elite, Dom Luis I Bridge is stunning, vinho verde is underpriced.','The famous pastel de nata in Porto. Lived up to every word of the hype.'],
    best:'The sunset cruise. The kind of thing that makes you feel like you are doing life correctly.',
    ret:'Going back to Porto for longer. That city deserves its own trip.'},
@@ -393,7 +404,7 @@ const CITIES=[
    grad:'linear-gradient(145deg,#00101c 0%,#003d5e 55%,#005e90 100%)',
    hero:P+'santorini_picture_with_boys_blue_domes.JPG',
    photos:[P+'santorini_picture_with_boys_blue_domes.JPG',P+'athens_nonchalant_picture_of_me_posing_looking_back_city_background.JPG',P+'athens_picture_with_brother_view_of_city_behind.jpeg'],
-   song:{title:'Circles',artist:'Kanye & Don Toliver',ytId:VCukxVqmRII,url:'https://open.spotify.com/search/Circles%20Kanye%20Don%20Toliver'},
+   song:{title:'Circles',artist:'Kanye & Don Toliver',ytId:'VCukxVqmRII',url:'https://open.spotify.com/search/Circles%20Kanye%20Don%20Toliver'},
    hi:['Temple of Hephaestus, Areopagus, Prison of Socrates, Pnyx, Tower of the Winds. Full ancient Athens circuit on Day 1.','The Parthenon from below is still extraordinary even without going inside. 2,500 years and still standing.','Santorini: Oia\'s blue domes in every direction. The photos do not lie.','A monastery visit during extreme weather. Dystopian atmosphere, genuinely unforgettable.','Day 2 back in Athens: food poisoning and the Environmental Econ resit notification on the same day. The single worst day abroad. Still in Greece though.','Bounced back Day 3. Mitropoleos Square. Athens gives you grace.'],
    best:'Oia at any hour. Santorini is exactly as beautiful as advertised. That is rare.',
    ret:'Athens yes. Santorini yes, but in May before the full summer crowd.'},
@@ -403,7 +414,7 @@ const CITIES=[
    grad:'linear-gradient(145deg,#1a0a00 0%,#6c2a00 55%,#b04000 100%)',
    hero:P+'florence_pretty_picture_of_city.jpeg',
    photos:[P+'florence_pretty_picture_of_city.jpeg',P+'florence_picture_of_me_looking_at_duomo.jpeg',P+'florence_fantasy_like_picture_with_my_brother.jpeg',P+'florence_picture_of_pasta.jpeg'],
-   song:{title:'Impossible',artist:'Travis Scott',ytId:fLMB6-AHTXI,url:'https://open.spotify.com/search/Impossible%20Travis%20Scott'},
+   song:{title:'Impossible',artist:'Travis Scott',ytId:'fLMB6-AHTXI',url:'https://open.spotify.com/search/Impossible%20Travis%20Scott'},
    hi:['Giotto\'s Bell Tower: climbed it, worth it. Views of the Duomo from that height are something else entirely.','Porta del Paradiso on the Baptistery. Gilded bronze panels that genuinely look like what they are named.','Palazzo Medici Riccardi, the family home. Walking those rooms knowing what decisions were made there hits differently after studying competitive strategy.','Walking tour: Duomo, Piazza della Repubblica, Arco del Trionfo, Palazzo Vecchio, Piazza della Signoria, Ponte Vecchio. Covered everything.','Gelato twice a day minimum. Non-negotiable in Florence.','Went to a techno rave. One time. Never again.'],
    best:'Piazza della Signoria surrounded by open-air sculpture just there, free, in public, for everyone.',
    ret:'Would spend more time in the Uffizi. Florence rewards slowness.'},
@@ -474,13 +485,28 @@ function openModal(city){
   document.getElementById('mSongArtist').textContent=city.song.artist;
   document.getElementById('mSongLink').href=city.song.url;
   // Photo reel
-  const reel=document.getElementById('mReel');
-  reel.innerHTML='';
-  currentPhotos.forEach((src,i)=>{
+  // Build editorial photo mosaic
+  const mosaic=document.getElementById('mMosaic');
+  mosaic.innerHTML='';
+  mosaic.className='pm-grid';
+  const allPhotos=city.photos||[];
+  const showPhotos=allPhotos.slice(0,5);
+  const overflow=allPhotos.length-5;
+  if(showPhotos.length===1) mosaic.classList.add('pm-solo');
+  showPhotos.forEach((src,i)=>{
+    const cell=document.createElement('div');
+    cell.className='pm-cell'+(i===0?' feat':'');
     const img=document.createElement('img');
-    img.src=src;img.className='reel-img';img.loading='lazy';
-    img.onclick=()=>openLB(i);
-    reel.appendChild(img);
+    img.src=src;img.className='pm-img';img.loading='lazy';img.alt='';
+    cell.appendChild(img);
+    if(i===4&&overflow>0){
+      const ov=document.createElement('div');
+      ov.className='pm-more';
+      ov.innerHTML=`<span class="pm-more-n">+${overflow}</span><span class="pm-more-l">more photos</span>`;
+      cell.appendChild(ov);
+    }
+    cell.onclick=()=>openLB(i);
+    mosaic.appendChild(cell);
   });
   document.getElementById('backdrop').classList.add('open');
   document.getElementById('backdrop').scrollTop=0;
