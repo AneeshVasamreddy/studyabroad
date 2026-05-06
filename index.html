@@ -63,14 +63,19 @@
     .modal-x:hover{background:rgba(255,255,255,.2)}
     .modal-body{padding:36px 44px}
     /* MUSIC PLAYER */
-    .music-player{display:flex;align-items:center;gap:14px;background:rgba(201,169,110,.05);border:1px solid rgba(201,169,110,.22);border-radius:3px;padding:14px 18px;margin-bottom:28px}
-    .mp-vinyl{width:38px;height:38px;border-radius:50%;background:conic-gradient(#2a2520 0deg 72deg,#c9a96e 72deg 79deg,#1a1510 79deg 360deg);display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:spin 7s linear infinite;animation-play-state:paused}
-    .music-player:hover .mp-vinyl{animation-play-state:running}
+    .music-player{display:flex;align-items:center;gap:14px;background:rgba(201,169,110,.05);border:1px solid rgba(201,169,110,.22);border-radius:3px;padding:14px 18px;margin-bottom:28px;cursor:default}
+    .mp-vinyl{width:40px;height:40px;border-radius:50%;background:conic-gradient(#2a2520 0deg 72deg,#c9a96e 72deg 79deg,#1a1510 79deg 144deg,#c9a96e 144deg 151deg,#1a1510 151deg 360deg);flex-shrink:0;animation:spin 5s linear infinite;animation-play-state:paused;position:relative}
+    .mp-vinyl::after{content:'';position:absolute;inset:35%;background:#0b0a08;border-radius:50%;border:1px solid rgba(201,169,110,.3)}
+    .music-player.playing .mp-vinyl{animation-play-state:running}
     .mp-info{flex:1;min-width:0}
     .mp-song{font-size:13px;font-weight:400;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .mp-artist{font-size:10px;color:var(--gold);letter-spacing:.5px;margin-top:2px}
-    .mp-btn{flex-shrink:0;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);border:1px solid rgba(201,169,110,.4);padding:6px 12px;border-radius:2px;text-decoration:none;transition:background .2s,color .2s;white-space:nowrap}
-    .mp-btn:hover{background:var(--gold);color:#0b0a08}
+    .mp-controls{display:flex;align-items:center;gap:8px;flex-shrink:0}
+    .mp-play{width:34px;height:34px;border-radius:50%;background:var(--gold);border:none;color:#0b0a08;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:transform .15s,opacity .15s;flex-shrink:0}
+    .mp-play:hover{transform:scale(1.1)}
+    .mp-play:active{transform:scale(.95)}
+    .mp-open{flex-shrink:0;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);border:1px solid rgba(255,255,255,.1);padding:5px 9px;border-radius:2px;text-decoration:none;transition:color .2s,border-color .2s;white-space:nowrap}
+    .mp-open:hover{color:var(--gold);border-color:rgba(201,169,110,.4)}
     /* MODAL BODY */
     .m-tags{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:28px}
     .m-tag{font-size:10px;letter-spacing:1px;color:var(--gold);background:rgba(201,169,110,.07);border:1px solid rgba(201,169,110,.22);padding:4px 10px;border-radius:2px}
@@ -219,13 +224,16 @@
       </div>
     </div>
     <div class="modal-body">
-      <div class="music-player">
+      <div class="music-player" id="mPlayer">
         <div class="mp-vinyl"></div>
         <div class="mp-info">
           <div class="mp-song" id="mSongTitle"></div>
           <div class="mp-artist" id="mSongArtist"></div>
         </div>
-        <a class="mp-btn" id="mSongLink" href="#" target="_blank" rel="noopener">Listen &#x2197;</a>
+        <div class="mp-controls">
+          <button class="mp-play" id="mPlayBtn" onclick="togglePlay()">&#9654;</button>
+          <a class="mp-open" id="mSongLink" href="#" target="_blank" rel="noopener">Open &#x2197;</a>
+        </div>
       </div>
       <div class="m-tags" id="mTags"></div>
       <span class="m-label">Highlights</span>
@@ -254,6 +262,8 @@
   <button class="lb-arr next" onclick="lbStep(1)">&#8250;</button>
 </div>
 
+<div id="yt-player" style="position:fixed;bottom:-10px;left:-10px;width:1px;height:1px;opacity:0;pointer-events:none;"></div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const P='photos/';
@@ -263,7 +273,7 @@ const CITIES=[
    grad:'linear-gradient(145deg,#1a0535 0%,#4c0a72 55%,#7c1082 100%)',
    hero:P+'barcelona_picture_with_boys_first_shoko_table.jpeg',
    photos:[P+'barcelona_picture_with_boys_first_shoko_table.jpeg',P+'barcelona_tame_impala_concert.jpeg',P+'barcelona_sitges_carnival_selfie_picture_with_boys.jpeg',P+'barcelona_parc_guell_picture_with_friend.jpeg',P+'barcelona_picture_of_me_la_pedrera.jpeg',P+'barcelona_picture_with_boys_at_opium_offset_concert.jpeg',P+'barcelona_picture_with_boys_last_sutton.jpeg',P+'barcelona_picture_with_boys_razzmatazz.jpeg',P+'barcelona_candid_of_me_in_cathedral_of_barcelona.jpeg',P+'barcelona_picture_with_brother_and_friend_last_minute_table_at_opium.jpeg',P+'barcelona_selfie_with_boys_on_the_way_to_offset_concert_uber.jpeg',P+'barcelona_picture_of_me_with_friend_first_sutton_club.jpeg',P+'barcelona_picture_with_boys_dinner_before_going_out.jpeg',P+'barcelona_picture_with_friend_airbar_cheap_bar_near_razz.jpeg',P+'barcelona_bunkers_del_carmel_picture of me with view in background.jpeg'],
-   song:{title:'Let It Happen',artist:'Tame Impala',url:'https://open.spotify.com/search/Let%20It%20Happen%20Tame%20Impala'},
+   song:{title:'Let It Happen',artist:'Tame Impala',ytId:'-ed6UeDp1ek',url:'https://open.spotify.com/search/Let%20It%20Happen%20Tame%20Impala'},
    hi:['Shoko Mondays, Razzmatazz Wednesdays, Pacha Saturdays. Barcelona nightlife became its own curriculum entirely.','Gaudi is everywhere and never gets old. Sagrada Familia, Casa Batllo, La Pedrera, Gaudi Haus. Each one weirder and more brilliant than the last.','Sitges for carnival was one of those unplanned moments you end up talking about for years. Color, chaos, the Mediterranean as a backdrop.','Bunkers del Carmel at sunset: the whole city laid out below, golden hour, cold beer. Unofficially the best view in Barcelona.','Tame Impala live. That concert was its own kind of night in a city full of them.','Park de la Ciutadella on a Sunday. Everyone out, live music, tourists and locals completely blurred.','Cannabis museum, beach days, Casa Calvet. Barcelona kept giving the whole semester.'],
    best:'Any Monday at Shoko. The consistency of a great night became its own kind of ritual. A weekly reminder that this city had fully adopted you.',
    ret:'Already planning the next trip.'},
@@ -273,7 +283,7 @@ const CITIES=[
    grad:'linear-gradient(145deg,#0e1f2b 0%,#1d3d50 55%,#2a5568 100%)',
    hero:P+'edinburgh_top_of_arthurs_seat_picture_with_boys.jpeg',
    photos:[P+'edinburgh_top_of_arthurs_seat_picture_with_boys.jpeg',P+'edinburgh_beginning_of_arthurs_seat.jpeg',P+'edinburgh_johnnie_walker_different_whiskey_bottles.jpeg',P+'edinburgh_johnnie_walker_whiskey_glass.jpeg',P+'edinburghchoclateandwine.jpeg'],
-   song:{title:'STAY HERE 4 LIFE',artist:'A$AP Rocky & Brent Faiyaz',url:'https://open.spotify.com/search/Stay%20Here%204%20Life%20ASAP%20Rocky%20Brent%20Faiyaz'},
+   song:{title:'STAY HERE 4 LIFE',artist:'A$AP Rocky & Brent Faiyaz',ytId:'iCvTrCngwQE',url:'https://open.spotify.com/search/Stay%20Here%204%20Life%20ASAP%20Rocky%20Brent%20Faiyaz'},
    hi:['Arthur\'s Seat hike was genuinely brutal. The 360 panorama of Edinburgh paid off every step completely.','Edinburgh Castle set the standard for every castle visited the rest of the semester. Real history, real weight.','Greyfriars Kirkyard at dusk. Centuries of stories underfoot, genuinely atmospheric.','Pub crawl through the Old Town: Tennent\'s, Innis and Gunn, Guinness. Edinburgh does pubs correctly.','Johnnie Walker Experience was very Disney. You walk out with three whisky drinks. Hard to argue with that.','The Chocolatarium private tour: chocolate paired with wine, four glasses minimum. Genuinely one of the best activities of the whole semester.'],
    best:'Top of Arthur\'s Seat, wind absolutely ripping, the whole city below. One of those moments a photo cannot actually hold.',
    ret:'100%. Especially in summer.'},
@@ -283,7 +293,7 @@ const CITIES=[
    grad:'linear-gradient(145deg,#2c1212 0%,#8a1818 55%,#b83226 100%)',
    hero:P+'milan_picture_with_boys_on_boat_on_lake_como.jpeg',
    photos:[P+'milan_picture_with_boys_on_boat_on_lake_como.jpeg',P+'milan_pasta_making_class_result_picture_with_boys.jpeg',P+'lake_como_night_picture_peaceful_romantic.jpeg',P+'milan_bus_view_of_lake_como.jpeg',P+'milan_nightlife_alcatraz_picture_of_DJ.jpeg'],
-   song:{title:"Flight's Booked",artist:'Drake',url:'https://open.spotify.com/search/Flights%20Booked%20Drake'},
+   song:{title:"Flight's Booked",artist:'Drake',ytId:'hb24kZ0fiEA',url:'https://open.spotify.com/search/Flights%20Booked%20Drake'},
    hi:['Day trip to Lake Como, Bellagio, and Lugano: three different vibes in one day. Raining at the cathedral and somehow perfect.','Beer and pasta in Bellagio was one of the best meals of the trip. Simple, local, completely unpressured.','Lugano was all designer stores. Very Swiss, very calm, a completely different energy.','Duomo di Milano at street level is genuinely awe-inspiring. Galleria Vittorio Emanuele II right next to it is architecture as pure theatre.','Pasta and tiramisu making class: required activity, non-negotiable, best culinary experience of the semester.','Went to Alcatraz solo after the Irish pub. Met guys from London and a Brazilian with braces who bought the table shots. That is study abroad.'],
    best:'Standing in the rain at Lake Como, cathedral across the water, no agenda. Just it.',
    ret:'Going back for the pasta class alone.'},
@@ -293,7 +303,7 @@ const CITIES=[
    grad:'linear-gradient(145deg,#0c1a2a 0%,#193b5e 55%,#24527f 100%)',
    hero:P+'london_picture_with_friend_on_the_shard.jpeg',
    photos:[P+'london_picture_with_friend_on_the_shard.jpeg',P+'london_sauna_selfie_with_boys.jpeg',P+'london_picture_of_me_in_cold_plunge.jpeg',P+'london_beer_tasting_in_camden_picture_of_beers.jpeg',P+'london_canary_wharf_skyline.jpeg',P+'london_famous_bourough_market_pig_sandwich.jpeg',P+'london_picture_with_friend_picadilly_circus.jpeg'],
-   song:{title:'E85',artist:'Don Toliver',url:'https://open.spotify.com/search/E85%20Don%20Toliver'},
+   song:{title:'E85',artist:'Don Toliver',ytId:'7GwLnsVUwHY',url:'https://open.spotify.com/search/E85%20Don%20Toliver'},
    hi:['Started Day 1 with a sauna and cold plunge on Canary Wharf. An insane way to begin any city.','Camden brewery tour: 8 to 10 beers for $33. Got absolutely sauced. Best value activity of the whole semester.','Borough Market: pork sandwich was genuinely life-changing. Plus juice, strawberries, and chocolate.','The Shard, Southwark Cathedral, London Bridge, Tate Modern, St. Paul\'s. All in one day.','Pub hopping evening: London does the wander-in-anywhere pub culture better than almost anywhere.','Day 3: Big Ben, Buckingham Palace, St. James\'s Park, Piccadilly Circus, National Gallery. Covered everything.'],
    best:'Drunk on Camden beers at noon, watching narrowboats on the canal. Peak afternoon.',
    ret:'Already mentally booked.'},
@@ -303,7 +313,7 @@ const CITIES=[
    grad:'linear-gradient(145deg,#1a1200 0%,#5e4600 55%,#8c6b15 100%)',
    hero:P+'belgium_brussels_pink_elephant_street_beer_tasting_with_friend.JPG',
    photos:[P+'belgium_brussels_pink_elephant_street_beer_tasting_with_friend.JPG',P+'belgium_dinant_picture_me_thumbs_up_good_view.jpeg',P+'belgium_antwerp_famous_statue_sleeping_under_floor.jpeg',P+'belgium_KU_LEUVEN_picture_me_statue_pouring_water_on_his_own_head.JPG',P+'belgium_leuven_beer_tasting_picture_with_boys.jpg'],
-   song:{title:'Secondhand',artist:'Don Toliver',url:'https://open.spotify.com/search/Secondhand%20Don%20Toliver'},
+   song:{title:'Secondhand',artist:'Don Toliver',ytId:'KCQ5Vcp4uKo',url:'https://open.spotify.com/search/Secondhand%20Don%20Toliver'},
    hi:['KU Leuven student bar: Duvel, stew, met Illinois kids at karaoke. International student life at its most universal.','Dinant day trip: the citadel, walking along the Meuse, and the honey flour cookie you literally cannot bite into.','Luxembourg detour: Notre Dame Cathedral and chess at a local bar with a beer. Peaceful.','Atomium in Brussels: a 1958 World\'s Fair structure that looks like it landed from another planet. Wildly underrated.','Ghent, City of Three Towers: canals, graffiti alley, Citadel Park. More interesting than Brussels by a mile.','10-beer Belgian tasting at Pink Elephant. Belgian beer culture is not a joke.','Candicious waffle near the Comic Book Art Museum. The museum was brilliant: Metal Hurlant, the full history.'],
    best:'The 10-beer tasting at Pink Elephant. By beer seven, everyone was best friends.',
    ret:'Ghent specifically. Would go back just for that city.'},
@@ -313,7 +323,7 @@ const CITIES=[
    grad:'linear-gradient(145deg,#090918 0%,#18184e 55%,#2c2c7a 100%)',
    hero:P+'paris_eiffel_tower_with_boys.JPG',
    photos:[P+'paris_eiffel_tower_with_boys.JPG',P+'paris_louvre_picture_with_boys.jpeg',P+'paris_49Navigoli_funny_painting.jpeg'],
-   song:{title:'Something Wrong',artist:'Don Toliver',url:'https://open.spotify.com/search/Something%20Wrong%20Don%20Toliver'},
+   song:{title:'Something Wrong',artist:'DJ Snake & Don Toliver',ytId:'ArCazzdOKRo',url:'https://open.spotify.com/search/Something%20Wrong%20Don%20Toliver'},
    hi:['Eiffel Tower: it lives up to it. Does not matter how many times you have seen it in photos.','59 Rivoli, a former squat turned legal artist collective. Studios open to the public, raw and loud and completely authentic. The anti-tourist-trap.','Napoleon\'s Tomb at Les Invalides: the scale is surprising. Architecture designed to make you feel genuinely small.','House party through connections. The most Parisian experience possible, and one of the best nights of the trip.','Got turned away from every club on night two. Paris nightlife has opinions about outsiders.'],
    best:'59 Rivoli. Real art in a real space made by real people. Not behind glass.',
    ret:'With a better club strategy, absolutely.'},
@@ -323,7 +333,7 @@ const CITIES=[
    grad:'linear-gradient(145deg,#190a00 0%,#7a3600 55%,#c46800 100%)',
    hero:P+'morocco_sahara_desert_first_person_POV_sunrise.jpeg',
    photos:[P+'morocco_sahara_desert_first_person_POV_sunrise.jpeg',P+'morocco_first_person_pov_on_camel.jpeg',P+'morocco_sahara_desert_selfie_with_ATV_helmet.jpeg',P+'morocco_burbur_village_picture_with_boys_at_top.jpeg',P+'morocco_picture_with_boys_traditional_clothing.jpeg',P+'morocco_carpet_store.jpeg'],
-   song:{title:"Creepin'",artist:'Don Toliver',url:'https://open.spotify.com/search/Creepin%20Don%20Toliver'},
+   song:{title:"Creepin'",artist:'Don Toliver',ytId:'guvUigQ1Yl0',url:'https://open.spotify.com/search/Creepin%20Don%20Toliver'},
    hi:['First stop at 1,680m elevation. The Atlas Mountains were a full reset from Europe.','Argan cooperative: watched the entire oil extraction process from tree to bottle.','The Berber village used as a Game of Thrones filming location. Walked the actual landscape.','Todra Gorge: otherworldly red canyon walls, warm river running through even in winter.','Got a traditional scarf, dressed in traditional clothing for desert photos. Fully leaned in.','Day 3 was a nine-hour bus ride back to Marrakesh. That is study abroad too.'],
    best:'Standing in Todra Gorge at sunrise, completely isolated from anything European. The furthest from Barcelona without leaving the continent.',
    ret:'Yes. Would go deeper into the desert next time.'},
@@ -333,7 +343,7 @@ const CITIES=[
    grad:'linear-gradient(145deg,#1a0414 0%,#6c0e3c 55%,#a01550 100%)',
    hero:P+'budapest_prosecco_cruise_fantastic_picture_with_friend.jpeg',
    photos:[P+'budapest_prosecco_cruise_fantastic_picture_with_friend.jpeg',P+'budapest_picture_in_front_of_parliment_day_with_friend.jpeg',P+'budapest_thermal_bath_picture_with_friend.jpeg',P+'budapest_picture_with_friend_city_in_background_night.jpeg'],
-   song:{title:'Off at 7',artist:'Chase B & Sheck Wes',url:'https://open.spotify.com/search/Off%20at%207%20Chase%20B%20Sheck%20Wes'},
+   song:{title:'Off at 7',artist:'Chase B & Sheck Wes',ytId:'-x3O-fhW2nI',url:'https://open.spotify.com/search/Off%20at%207%20Chase%20B%20Sheck%20Wes'},
    hi:['Maverick SoHo hostel. One of the best places stayed all semester. Great location, great energy.','Hungarian Parliament from the riverbank: one of the most dramatic buildings in Europe.','Prosecco cruise on the Danube: city lit up, bridge after bridge at golden hour.','Szechenyi Thermal Baths: outdoor thermal pools inside a Baroque palace on a cold day. Completely surreal.','Fisherman\'s Bastion at sunset, then Buda Castle. Two of the best viewpoints found in any city this semester.','Szimpla Kert ruin bar: a half-crumbling building turned into a labyrinthine nightlife complex. Nothing else like it exists.'],
    best:'Szechenyi Baths. Hot thermal water, ridiculous architecture, the city going on around you.',
    ret:'Budapest might be the most underrated city in Europe. Absolutely yes.'},
@@ -343,7 +353,7 @@ const CITIES=[
    grad:'linear-gradient(145deg,#001930 0%,#003d6e 55%,#0059a0 100%)',
    hero:P+'portugal_lisbon_picture_with_boys_on_boat.JPG',
    photos:[P+'portugal_lisbon_picture_with_boys_on_boat.JPG',P+'portugal_lisbon_first_night_out_picture_with_friends_in_front_of_water.jpeg',P+'portugal_lisbon_sardine_store_me_sitting_on_sardine_throne.jpeg',P+'portugal_lisbon_second_night_out_picture_with_boys.jpeg',P+'portugal_porto_picture_of_city_good_view_candid.jpeg',P+'portugal_porto_picture_with_friend_trying_el_pastel.JPG',P+'portugal_porto_picture_with_friends_on_famous_bridge_good_view.jpeg'],
-   song:{title:'Jazz',artist:'Lil Double 0',url:'https://open.spotify.com/search/Jazz%20Lil%20Double%200'},
+   song:{title:'Jazz',artist:'Lil Double 0',ytId:null,url:'https://open.spotify.com/search/Jazz%20Lil%20Double%200'},
    hi:['Time Out Market: peri peri chicken, quesadilla, and a pastel de nata in one sitting. The correct move.','Jeronimos Monastery: late Gothic Manueline architecture at its absolute peak.','Belem Tower and Monument to the Discoveries tell the entire Portuguese Age of Exploration in an afternoon.','Sunset cruise on the Tagus. Water, wine, the whole city glowing. Peak Lisbon.','Sat on the sardine throne at the sardine store. Required.','Porto day trip: pork sandwich at Cafe Espresso was elite, Dom Luis I Bridge is stunning, vinho verde is underpriced.','The famous pastel de nata in Porto. Lived up to every word of the hype.'],
    best:'The sunset cruise. The kind of thing that makes you feel like you are doing life correctly.',
    ret:'Going back to Porto for longer. That city deserves its own trip.'},
@@ -353,7 +363,7 @@ const CITIES=[
    grad:'linear-gradient(145deg,#001900 0%,#0e4d0e 55%,#1a7a1a 100%)',
    hero:P+'dublin_picture_with_boys_in_front_of_temple_bar.jpeg',
    photos:[P+'dublin_picture_with_boys_in_front_of_temple_bar.jpeg',P+'dublin_picture_of_guiness_glasses_on_table.jpeg',P+'dublin_picture_of_how_packed_bar_was.jpeg',P+'dublin_picture_with_boys_in_bar_last_night.jpeg'],
-   song:{title:'90210',artist:'Travis Scott',url:'https://open.spotify.com/search/90210%20Travis%20Scott'},
+   song:{title:'90210',artist:'Travis Scott',ytId:'BuNBLjJzRoo',url:'https://open.spotify.com/search/90210%20Travis%20Scott'},
    hi:['Temple Bar district is loud, touristy, and exactly what it promises. Leaned in completely.','Diceys Garden for the nightlife. Classic Irish student bar energy.','Beers averaging 10 euros. Dublin is expensive. Dublin is also worth every cent.','First proper Guinness on Irish soil. It actually does taste different.'],
    best:'First Guinness on Irish soil in Temple Bar. It does taste different.',
    ret:'For longer. Saw almost nothing outside Temple Bar.'},
@@ -363,7 +373,7 @@ const CITIES=[
    grad:'linear-gradient(145deg,#1a0900 0%,#8c3d00 55%,#d4600a 100%)',
    hero:P+'amsterdam_calm_candid_night_view_canals.jpeg',
    photos:[P+'amsterdam_calm_candid_night_view_canals.jpeg',P+'amsterdam_wine_and_cheese_picture_with_boys.jpeg',P+'amsterdam_heineken_tour_different_ingredients_needed.jpeg',P+'amsterdam_museum_of_illusions_one_type_of_exhibit.jpeg'],
-   song:{title:'Astrothunder',artist:'Travis Scott',url:'https://open.spotify.com/search/Astrothunder%20Travis%20Scott'},
+   song:{title:'Astrothunder',artist:'Travis Scott',ytId:'Pa67b28h0vY',url:'https://open.spotify.com/search/Astrothunder%20Travis%20Scott'},
    hi:['Wine and cheese tour on Day 1. Started the city correctly.','Pancake Bakery brunch was a religious experience. Dutch pancakes are not pancakes as you know them.','Moco Museum: Banksy and Dali in one building, genuinely great collection, weirdly uncrowded.','Heineken Experience: corporate and fun simultaneously. You get beers at the end. Worth it.','Cafe Prix d\'Ami: best coffee shop of the whole trip. Great atmosphere, full vibes.','Casino night: went in down, came out up 28 euros. Ended the trip\'s best day correctly.'],
    best:'Up 28 euros at the casino at 1am with the city buzzing outside. Turned a good day into a great one.',
    ret:'Would hit the museums harder next time. The city is dense with good stuff.'},
@@ -373,7 +383,7 @@ const CITIES=[
    grad:'linear-gradient(145deg,#00180a 0%,#0d4c28 55%,#0e6a38 100%)',
    hero:P+'prague_picture_with_boys_view_of_city_background.jpeg',
    photos:[P+'prague_picture_with_boys_view_of_city_background.jpeg',P+'prague_petrin_tower_view_of_city_candid.jpeg',P+'prague_pilsner_tour_picture_with_boys.JPG'],
-   song:{title:'Griddle',artist:'Yeat & Don Toliver',url:'https://open.spotify.com/search/Griddle%20Yeat%20Don%20Toliver'},
+   song:{title:'Griddle',artist:'Yeat & Don Toliver',ytId:'_H0yAU3IP5I',url:'https://open.spotify.com/search/Griddle%20Yeat%20Don%20Toliver'},
    hi:['Powder Tower Suites. Great location, right in Old Town, made the whole trip better.','4 euro beers. Not a typo. Prague is the most correctly priced city in Europe.','Mistral Cafe brunch: 4 euro pilsner with a solid omelette. Best morning routine of the semester.','Astronomical Clock Tower and Old Town Square: one of the most impressive public spaces walked through all semester.','Prague Castle complex at golden hour. The views back over the red-roofed city are genuinely unreal.','Pilsner Urquell factory tour in Plzen. Tasted it fresh from the tank. Completely different drink.','Monkey Bar Crawl on Day 2. Met people from everywhere, covered the nightlife in one shot.'],
    best:'Prague Castle at golden hour. That city is impossibly beautiful and it knows it.',
    ret:'Top 3 cities of the semester. Without question.'},
@@ -383,7 +393,7 @@ const CITIES=[
    grad:'linear-gradient(145deg,#00101c 0%,#003d5e 55%,#005e90 100%)',
    hero:P+'santorini_picture_with_boys_blue_domes.JPG',
    photos:[P+'santorini_picture_with_boys_blue_domes.JPG',P+'athens_nonchalant_picture_of_me_posing_looking_back_city_background.JPG',P+'athens_picture_with_brother_view_of_city_behind.jpeg'],
-   song:{title:'Circles',artist:'Kanye & Don Toliver',url:'https://open.spotify.com/search/Circles%20Kanye%20Don%20Toliver'},
+   song:{title:'Circles',artist:'Kanye & Don Toliver',ytId:null,url:'https://open.spotify.com/search/Circles%20Kanye%20Don%20Toliver'},
    hi:['Temple of Hephaestus, Areopagus, Prison of Socrates, Pnyx, Tower of the Winds. Full ancient Athens circuit on Day 1.','The Parthenon from below is still extraordinary even without going inside. 2,500 years and still standing.','Santorini: Oia\'s blue domes in every direction. The photos do not lie.','A monastery visit during extreme weather. Dystopian atmosphere, genuinely unforgettable.','Day 2 back in Athens: food poisoning and the Environmental Econ resit notification on the same day. The single worst day abroad. Still in Greece though.','Bounced back Day 3. Mitropoleos Square. Athens gives you grace.'],
    best:'Oia at any hour. Santorini is exactly as beautiful as advertised. That is rare.',
    ret:'Athens yes. Santorini yes, but in May before the full summer crowd.'},
@@ -393,7 +403,7 @@ const CITIES=[
    grad:'linear-gradient(145deg,#1a0a00 0%,#6c2a00 55%,#b04000 100%)',
    hero:P+'florence_pretty_picture_of_city.jpeg',
    photos:[P+'florence_pretty_picture_of_city.jpeg',P+'florence_picture_of_me_looking_at_duomo.jpeg',P+'florence_fantasy_like_picture_with_my_brother.jpeg',P+'florence_picture_of_pasta.jpeg'],
-   song:{title:'Impossible',artist:'Travis Scott',url:'https://open.spotify.com/search/Impossible%20Travis%20Scott'},
+   song:{title:'Impossible',artist:'Travis Scott',ytId:null,url:'https://open.spotify.com/search/Impossible%20Travis%20Scott'},
    hi:['Giotto\'s Bell Tower: climbed it, worth it. Views of the Duomo from that height are something else entirely.','Porta del Paradiso on the Baptistery. Gilded bronze panels that genuinely look like what they are named.','Palazzo Medici Riccardi, the family home. Walking those rooms knowing what decisions were made there hits differently after studying competitive strategy.','Walking tour: Duomo, Piazza della Repubblica, Arco del Trionfo, Palazzo Vecchio, Piazza della Signoria, Ponte Vecchio. Covered everything.','Gelato twice a day minimum. Non-negotiable in Florence.','Went to a techno rave. One time. Never again.'],
    best:'Piazza della Signoria surrounded by open-air sculpture just there, free, in public, for everyone.',
    ret:'Would spend more time in the Uffizi. Florence rewards slowness.'},
@@ -403,7 +413,7 @@ const CITIES=[
    grad:'linear-gradient(145deg,#0f0f0f 0%,#282828 55%,#3c3c3c 100%)',
    hero:P+'berlin_picture_with_friend_brandenburg_gate.jpeg',
    photos:[P+'berlin_picture_with_friend_brandenburg_gate.jpeg',P+'berlin_wall_memorial_candid.jpeg',P+'berlin_cool_grafitti_on_wall.jpeg',P+'berlin_liter_of_beer_with_friend.jpeg',P+'berlin_sammy_virji_concert_picture_of_DJ.jpeg'],
-   song:{title:'Summertime Blues',artist:'Sammy Virji',url:'https://open.spotify.com/search/Summertime%20Blues%20Sammy%20Virji'},
+   song:{title:'Summertime Blues',artist:'Chris Lake & Sammy Virji',ytId:'0mIgsQCsml0',url:'https://open.spotify.com/search/Summertime%20Blues%20Sammy%20Virji'},
    hi:['Burgermeister under a railway arch, Day 1 lunch. Best burger of the trip.','Berlin Wall Memorial: sober and important, handled with more honesty than you would expect a country to give its own darkest chapter.','East Side Gallery: a full kilometer of the original Wall covered in murals. Political art hits differently when you are standing inside the history.','Brandenburg Gate, Memorial to the Murdered Jews of Europe, Monument to Homosexuals Persecuted Under National Socialism, Soviet War Memorial, Reichstag. Berlin does not let you forget.','Sammy Virji live. A full-circle moment given how much that album had soundtracked the trip.','Matrix Club: solid night, standard energy. Next time, Berghain.'],
    best:'Walking the East Side Gallery slowly, alone. The weight of it settles differently without rush.',
    ret:'Yes. And would attempt Berghain properly next time.'},
@@ -413,7 +423,7 @@ const CITIES=[
    grad:'linear-gradient(145deg,#1a0035 0%,#5c0095 45%,#e8004a 100%)',
    hero:P+'ibiza_picture_with_friend_ankle_deep_in_water_sunset_background.JPG',
    photos:[P+'ibiza_picture_with_friend_ankle_deep_in_water_sunset_background.JPG',P+'ibiza_picture_with_friend_Obeach_club.JPG',P+'ibiza_picture_hi_ibiza_cool.jpeg',P+'ibiza_picture_of_sunset_hotel.jpeg'],
-   song:{title:'Relax My Eyes',artist:'ANOTR',url:'https://open.spotify.com/search/Relax%20My%20Eyes%20ANOTR'},
+   song:{title:'Relax My Eyes',artist:'ANOTR',ytId:'JOXzs2UhkHI',url:'https://open.spotify.com/search/Relax%20My%20Eyes%20ANOTR'},
    hi:['Hotel THB Naeco. Exactly the right base for this kind of trip.','O Beach Club Saturday and Sunday: pool party, view, vibes dialed to eleven.','HI Ibiza Saturday night. World-class club, world-class lineup.','Pacha for ANOTR Sunday night. If you know, you know. If you do not, look it up before you go.','The whole trip was 96 hours of being completely present. No sightseeing. No itinerary. Just it.'],
    best:'ANOTR at Pacha. That set, that room, that night. Best moment of the semester. Full stop.',
    ret:'Ibiza was the best trip of the semester. That is the verdict.'}
@@ -447,9 +457,11 @@ COURSES.forEach(c=>{
 });
 
 /* MODAL */
-let currentPhotos=[];
+let currentPhotos=[], currentSong=null, ytPlayer=null, ytReady=false, isPlaying=false;
+
 function openModal(city){
   currentPhotos=city.photos||[];
+  currentSong=city.song;
   document.getElementById('mEye').textContent=`${city.flag} ${city.country} · ${city.badge}`;
   document.getElementById('mTitle').textContent=city.name;
   document.getElementById('mGrad').style.background=city.grad;
@@ -461,6 +473,7 @@ function openModal(city){
   document.getElementById('mSongTitle').textContent=city.song.title;
   document.getElementById('mSongArtist').textContent=city.song.artist;
   document.getElementById('mSongLink').href=city.song.url;
+  // Photo reel
   const reel=document.getElementById('mReel');
   reel.innerHTML='';
   currentPhotos.forEach((src,i)=>{
@@ -472,8 +485,64 @@ function openModal(city){
   document.getElementById('backdrop').classList.add('open');
   document.getElementById('backdrop').scrollTop=0;
   document.body.style.overflow='hidden';
+  // Auto-start music
+  setTimeout(()=>startMusic(), 400);
 }
-function closeModal(){document.getElementById('backdrop').classList.remove('open');document.body.style.overflow='';}
+
+function startMusic(){
+  const player=document.getElementById('mPlayer');
+  const btn=document.getElementById('mPlayBtn');
+  if(!currentSong||!currentSong.ytId){
+    // No YouTube ID — show open link only, no playback
+    player.classList.remove('playing');
+    btn.innerHTML='&#9654;';
+    btn.style.opacity='.35';
+    btn.style.cursor='not-allowed';
+    isPlaying=false;
+    return;
+  }
+  btn.style.opacity='1';
+  btn.style.cursor='pointer';
+  if(ytReady&&ytPlayer){
+    ytPlayer.loadVideoById({videoId:currentSong.ytId,startSeconds:0});
+    ytPlayer.setVolume(70);
+    ytPlayer.playVideo();
+    player.classList.add('playing');
+    btn.innerHTML='&#9646;&#9646;';
+    isPlaying=true;
+  }
+}
+
+function togglePlay(){
+  const player=document.getElementById('mPlayer');
+  const btn=document.getElementById('mPlayBtn');
+  if(!currentSong||!currentSong.ytId) return;
+  if(!ytReady||!ytPlayer) return;
+  if(isPlaying){
+    ytPlayer.pauseVideo();
+    player.classList.remove('playing');
+    btn.innerHTML='&#9654;';
+    isPlaying=false;
+  } else {
+    ytPlayer.playVideo();
+    player.classList.add('playing');
+    btn.innerHTML='&#9646;&#9646;';
+    isPlaying=true;
+  }
+}
+
+function stopMusic(){
+  if(ytReady&&ytPlayer){ try{ytPlayer.stopVideo();}catch(e){} }
+  document.getElementById('mPlayer').classList.remove('playing');
+  document.getElementById('mPlayBtn').innerHTML='&#9654;';
+  isPlaying=false;
+}
+
+function closeModal(){
+  stopMusic();
+  document.getElementById('backdrop').classList.remove('open');
+  document.body.style.overflow='';
+}
 function handleBackdropClick(e){if(e.target===document.getElementById('backdrop'))closeModal();}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeLB();}if(e.key==='ArrowLeft')lbStep(-1);if(e.key==='ArrowRight')lbStep(1);});
 
@@ -495,6 +564,31 @@ L.polyline(routeCoords,{color:'rgba(201,169,110,0.32)',weight:1.5,dashArray:'4,9
 /* COUNTERS */
 const io=new IntersectionObserver(entries=>{entries.forEach(en=>{if(!en.isIntersecting)return;const el=en.target,target=+el.dataset.count;let t0=null;const run=ts=>{if(!t0)t0=ts;const p=Math.min((ts-t0)/1400,1);el.textContent=Math.floor(p*target);if(p<1)requestAnimationFrame(run);else el.textContent=target;};requestAnimationFrame(run);io.unobserve(el);});},{threshold:0.5});
 document.querySelectorAll('.stat-n[data-count]').forEach(el=>io.observe(el));
+
+/* YOUTUBE IFRAME API */
+const ytScript=document.createElement('script');
+ytScript.src='https://www.youtube.com/iframe_api';
+document.head.appendChild(ytScript);
+
+window.onYouTubeIframeAPIReady=function(){
+  ytPlayer=new YT.Player('yt-player',{
+    height:'1',width:'1',
+    playerVars:{autoplay:0,controls:0,playsinline:1,origin:window.location.origin},
+    events:{
+      onReady:()=>{ytReady=true;},
+      onStateChange:(e)=>{
+        // If video ends or errors, reset UI
+        if(e.data===YT.PlayerState.ENDED||e.data===YT.PlayerState.PAUSED){
+          if(e.data===YT.PlayerState.ENDED){
+            document.getElementById('mPlayer').classList.remove('playing');
+            document.getElementById('mPlayBtn').innerHTML='&#9654;';
+            isPlaying=false;
+          }
+        }
+      }
+    }
+  });
+};
 </script>
 </body>
 </html>
